@@ -1,0 +1,35 @@
+name: AI CGO Biweekly Report
+
+on:
+  schedule:
+    # 毎月1日と15日 09:00 JST (00:00 UTC)
+    - cron: '0 0 1,15 * *'
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: uspeak-ai-cgo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: uspeak-ai-cgo/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run AI CGO Analyzer
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          GOOGLE_CREDENTIALS_BASE64: ${{ secrets.GOOGLE_CREDENTIALS_BASE64 }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+        run: python cgo_analyzer.py
