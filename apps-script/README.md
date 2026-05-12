@@ -1,64 +1,77 @@
-# AI CGO – Google Apps Script 版（推奨）
+# AI CGO – Google Apps Script 版（コンサル品質 / Slack完結）
 
-Python 版（`uspeak-ai-cgo/`）よりセットアップが圧倒的に簡単。サービスアカウントも GitHub も不要。**3分**で完了する。
+合同会社U-Speak Labの営業データを、隔週で **Claude Opus 4.7 + Extended Thinking** が深く分析し、McKinsey/BCG 風の戦略提言書を **Slack のリッチメッセージ**として投稿する。PDF や外部サービス不要、すべて Slack 内で読める。
 
-## なぜこちらが楽か
+## 何が出てくるか（Slack投稿の構成）
 
-- ✅ サービスアカウント / Google Cloud Console 不要（スクリプトがシート所有者として動く）
-- ✅ GitHub / GitHub Actions 不要（Apps Script のトリガーで定期実行）
-- ✅ 必要な認証情報は **Anthropic API キー** と **Slack Webhook URL** のみ
-- ✅ コード1ファイル
+```
+📊 AI CGO 戦略提言書
+─────────────────────
+1️⃣ Executive Summary
+   • Thesis（主張1段落）
+   • KPIダッシュボード（4指標）
+   • 最重要提言 Top 3
 
-## セットアップ手順（3分）
+2️⃣ 現状分析（Situation Analysis）
+   • 構造分析の論述
+   • セールスファネル（▰▱バー表示）
+   • 前期比較
 
-1. **Anthropic API キーを発行**
-   https://console.anthropic.com/settings/keys → Create Key →`sk-ant-…` をコピー
+3️⃣ セグメント深掘り
+   • 業種別 / 地域別 / 規模別
+   • クロスセグメント・インサイト
 
-2. **Slack Incoming Webhook を発行**
-   https://api.slack.com/apps → Create New App → From scratch → ワークスペース選択 → 作成後の画面で左メニュー **Incoming Webhooks** をクリック → トグルを **On** → 下の **Add New Webhook to Workspace** → 投稿先チャンネル（例: `#cgo-report`）選択 → Allow → 発行された `https://hooks.slack.com/services/…` をコピー
+4️⃣ 仮説と根拠（Hypothesis Tree）
+   • 仮説 → 数値根拠 → 結論を 3〜5本
 
-3. **スプレッドシートを準備**
-   1枚目のシート名を `営業活動ログ` にする。1行目に列ヘッダー（A〜O）を入れる。
+5️⃣ 戦略提言（Impact × Feasibility）
+   • 2x2マトリクス（テキスト版）
+   • 各提言: Rationale, Impact, Feasibility, Expected outcome
 
-4. **Apps Script に貼り付け**
-   スプレッドシート → 拡張機能 → Apps Script → 既存の `Code.gs` をすべて削除 → `apps-script/Code.gs` の中身をまるごと貼り付け → 💾保存（Ctrl/Cmd+S）
+6️⃣ アクションプラン
+   • 30/60/90日: タスク・オーナー・期限・KPI
 
-5. **シークレットを登録**
-   関数選択ドロップダウンで `setupSecrets` を選び → ▶ 実行 → 初回は権限承認ダイアログが出るので承認 → ダイアログで API キーと Webhook URL を順に貼り付け
+7️⃣ リスクと前提
+```
 
-6. **動作確認**
-   関数 `testRun` を実行 → Slack にダミーレポートが届くことを確認
+## なぜ Apps Script で済むか
 
-7. **自動投稿を有効化**
-   関数 `createBiweeklyTriggers` を実行 → 毎月1日と15日の **9:00 JST** に自動投稿される
+- Sheets の中で動く → サービスアカウント不要
+- Slack Webhook へ Block Kit を POST → Bot Token 不要
+- Apps Script の時間ベーストリガー → GitHub Actions 不要
+- 必要な認証情報は **2つだけ**: Anthropic API キーと Slack Webhook URL
 
-## シートのスキーマ
+## セットアップ（3分）
 
-| 列 | カラム名 | 型 | 例 |
-|---|---|---|---|
-| A | アプローチ日 | 日付 | 2026-05-18 |
-| B | 企業名 | 文字列 | ツリーベル英語教室 |
-| C | 業種 | 文字列 | 英会話教室 |
-| D | 地域 | 文字列 | 東京 |
-| E | 規模 | 文字列 | 50-300名 |
-| F | 担当者名 | 文字列 | 山田太郎 |
-| G | 役職 | 文字列 | 代表 |
-| H | アプローチ方法 | 文字列 | メール / 電話 / フォーム |
-| I | 件名/メッセージ | 文字列 | （送信文） |
-| J | ステータス | 文字列 | 未返信 / 返信あり / アポ獲得 / 失注 |
-| K | 返信日 | 日付 | 2026-05-20 |
-| L | アポ日 | 日付 | 2026-05-25 |
-| M | 失注理由 | 文字列 | 価格 / 既存ツール / 検討中 |
-| N | 次アクション | 文字列 | 来週再アプローチ |
-| O | 備考 | 文字列 | 自由記述 |
+### 1. Anthropic API キーを発行
+https://console.anthropic.com/settings/keys → Create Key → コピー
+
+### 2. Slack Incoming Webhook を発行
+https://api.slack.com/apps → アプリを開く → 左メニュー **Incoming Webhooks** → トグル **On** → Add New Webhook to Workspace → チャンネル選択 → Allow → URL をコピー
+
+### 3. スプレッドシートを準備
+1枚目のシート名を `営業活動ログ` に。1行目に A〜O のヘッダー：
+`アプローチ日 / 企業名 / 業種 / 地域 / 規模 / 担当者名 / 役職 / アプローチ方法 / 件名 / ステータス / 返信日 / アポ日 / 失注理由 / 次アクション / 備考`
+
+### 4. Apps Script に貼り付け
+拡張機能 → Apps Script → 既存の `function myFunction() {}` を削除 → このリポジトリの `apps-script/Code.gs` を全文コピペ → 保存
+
+### 5. シークレットを保存
+関数選択で `setupSecrets` → ▶ 実行 → 権限承認 → ダイアログで API キーと Webhook URL を順に貼り付け
+
+### 6. 動作確認
+関数選択で `testRun` → ▶ 実行 → Slack にフルレポートが届くか確認
+
+### 7. 自動投稿を有効化
+関数選択で `createBiweeklyTriggers` → ▶ 実行 → 毎月1日と15日 9:00 JST に自動投稿
 
 ## 関数リファレンス
 
 | 関数 | 用途 | 実行頻度 |
 |---|---|---|
-| `setupSecrets` | API キー / Webhook URL を Script Properties に保存 | 初回1回 |
+| `setupSecrets` | API キー / Webhook URL を保存 | 初回1回 |
 | `createBiweeklyTriggers` | 毎月1日・15日 9:00 のトリガー作成 | 初回1回 |
-| `testSlack` | Slack ルートのみ確認 | 任意 |
+| `testSlack` | Slack ルートのみ確認（API無料） | 任意 |
 | `testRun` | ダミーデータで Claude→Slack の往復確認 | 任意 |
 | `manualRun` | 実シートに対して即時実行 | 任意 |
 | `runBiweeklyReport` | 本番ロジック（トリガーから呼ばれる） | 自動 |
@@ -71,23 +84,32 @@ Python 版（`uspeak-ai-cgo/`）よりセットアップが圧倒的に簡単。
 | 最低必要データ件数（デフォルト10） | `CONFIG.MIN_DATA_COUNT` |
 | シート名 | `CONFIG.SHEET_NAME` |
 | Claude モデル | `CONFIG.CLAUDE_MODEL` |
-| プロンプト | `SYSTEM_PROMPT` 定数、`userPrompt` 組み立て箇所 |
-| Slack ブロック | `postReportToSlack` |
-| 実行スケジュール | `createBiweeklyTriggers` の `onMonthDay` / `atHour` |
+| Thinking バジェット | `CONFIG.CLAUDE_THINKING_BUDGET` |
+| プロンプト | `SYSTEM_PROMPT` 定数 |
+| Slack ブロック構成 | `postReportToSlack` |
+| スケジュール | `createBiweeklyTriggers` の `onMonthDay` / `atHour` |
+
+## コスト
+
+- Claude Opus 4.7: 1回あたり概ね $0.10〜$0.30（Extended Thinking 含む）
+- 月2回実行 → **月 $0.20〜$0.60**（誤差レベル）
+- Apps Script: 無料
+- Slack Webhook: 無料
 
 ## トラブルシューティング
 
 | 症状 | 対処 |
 |---|---|
-| `setupSecrets` 実行時に「承認が必要」 | 表示される画面で許可。Apps Script は最初の実行で権限を要求する |
+| `setupSecrets` で「承認が必要」 | 表示画面で許可。Apps Script は最初の実行で権限要求 |
 | Slack に届かない | `testSlack` で切り分け。Webhook URL の有効性を確認 |
-| `Claude API 401` | API キーをローテートして `setupSecrets` を再実行 |
-| `Claude API 400` の model 関連 | `CONFIG.CLAUDE_MODEL` を最新の Sonnet ID に更新 |
-| `シート「営業活動ログ」が見つかりません` | シート名（タブ名）を `営業活動ログ` に変更、または `CONFIG.SHEET_NAME` を実際の名前に |
+| `Claude API 401` | API キーをローテートして `setupSecrets` 再実行 |
+| `Claude API 400` (model) | `CONFIG.CLAUDE_MODEL` を最新の Opus ID に更新 |
+| `シート「営業活動ログ」が見つかりません` | タブ名を `営業活動ログ` に変更、または `CONFIG.SHEET_NAME` を実名に |
 | データ不足通知ばかり来る | `CONFIG.MIN_DATA_COUNT` を下げる |
+| Slack が長すぎて切れる | コードは自動で50ブロック単位で分割投稿します |
 | 列が増えた | `COLUMNS` 配列を更新（順序が重要） |
-| トリガーを止めたい | Apps Script エディタ左の「⏰トリガー」アイコン → 削除 |
+| トリガーを止めたい | Apps Script 左の「⏰トリガー」アイコン → 削除 |
 
-## Python 版との併用
+## Python 版との関係
 
-`uspeak-ai-cgo/` の Python 版はそのまま残してあります。Apps Script 版で運用しつつ、将来複雑なロジックや CFO 連携など重い処理が必要になったときに Python 版に切り替える、という二段構えにできます。
+`uspeak-ai-cgo/` の Python 版（GitHub Actions + サービスアカウント）はそのまま残してあります。シンプル運用なら Apps Script、将来 BI 連携や PDF 出力など重い処理が必要になったら Python 版に切り替え可能。
