@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Onboarding from './components/Onboarding';
 import ChatInterface from './components/ChatInterface';
+import SalesDashboard from './components/SalesDashboard';
 import { NPCConfig, Message } from './types';
 
 const STORAGE_KEY_CONFIG = 'uspeak_npc_config';
@@ -10,6 +11,13 @@ const App: React.FC = () => {
   const [npcConfig, setNpcConfig] = useState<NPCConfig | null>(null);
   const [history, setHistory] = useState<Message[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [route, setRoute] = useState(() => window.location.hash.replace('#', ''));
+
+  useEffect(() => {
+    const onHashChange = () => setRoute(window.location.hash.replace('#', ''));
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   useEffect(() => {
     const storedConfig = localStorage.getItem(STORAGE_KEY_CONFIG);
@@ -58,6 +66,11 @@ const App: React.FC = () => {
   };
 
   if (!isLoaded) return null;
+
+  // 営業成績ダッシュボード（#dashboard / #sales でアクセス）
+  if (route === 'dashboard' || route === 'sales') {
+    return <SalesDashboard />;
+  }
 
   return (
     <div className="font-sans antialiased text-gray-900 bg-white h-screen w-full">
